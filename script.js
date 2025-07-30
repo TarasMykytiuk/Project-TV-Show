@@ -1,13 +1,19 @@
 //You can edit ALL of the code here
 function setup() {
-  const allEpisodes = getAllEpisodes();
-  makePageForEpisodes(allEpisodes);
+  //const allEpisodes = getAllEpisodes();
+  makePageForEpisodes(state.allEpisodes);
 }
 
-function makePageForEpisodes(episodeList) {
+function makePageForEpisodes() {
   const rootElem = document.getElementById("root");
+  const filteredEpisodes = state.allEpisodes.filter((episode) => {
+    return (
+      episode.summary.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+      episode.name.toLowerCase().includes(state.searchTerm.toLowerCase())
+    );
+  });
   //rootElem.textContent = `Got ${episodeList.length} episode(s)`;
-  for (const episode of episodeList) {
+  for (const episode of filteredEpisodes) {
     makeEpisodeCard(episode, rootElem);
   }
 }
@@ -18,7 +24,8 @@ function makeEpisodeCard(episode, rootElem) {
   const number = episode.number;
   const medImageUrl = episode.image.medium;
   const summary = episode.summary;
-  const episodeCode = "S" + String(season) + "E" + String(number).padStart(2, "0");
+  const episodeCode =
+    "S" + String(season) + "E" + String(number).padStart(2, "0");
 
   const cardDom = document.createElement("div");
   cardDom.classList.add("card");
@@ -34,5 +41,30 @@ function makeEpisodeCard(episode, rootElem) {
   cardDom.appendChild(summaryDom);
   rootElem.appendChild(cardDom);
 }
+
+// Created a place for the search bar
+const navBar = document.createElement("nav");
+document.body.insertBefore(navBar, document.body.firstChild);
+
+const input = document.createElement("input");
+input.setAttribute("id", "input");
+input.setAttribute("placeholder", "Please insert your text");
+input.setAttribute("type", "search");
+navBar.appendChild(input);
+
+const allEpisodes = getAllEpisodes();
+
+// Created one place to hold data
+const state = {
+  allEpisodes,
+  searchTerm: "",
+};
+
+input.addEventListener("input", () => {
+  state.searchTerm = input.value;
+  // Update the page to be empty before filteredEpisodes append
+  document.getElementById("root").innerHTML = "";
+  makePageForEpisodes();
+});
 
 window.onload = setup;
