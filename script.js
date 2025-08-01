@@ -44,27 +44,66 @@ function makeEpisodeCard(episode, rootElem) {
 }
 
 // Created a place for the search bar
+const allEpisodes = getAllEpisodes();
+
 const navBar = document.createElement("nav");
 document.body.insertBefore(navBar, document.body.firstChild);
 
-const countArea = document.createElement("p");
-countArea.id = "count-area";
-navBar.appendChild(countArea);
+const episodeSelector = document.createElement("select");
+episodeSelector.setAttribute("id", "selector");
+episodeSelector.setAttribute("name", "selector");
+episodeSelector.setAttribute("placeholder", "Chose episode");
 
-function countEpisodes(countAllEpisodes, countFilteredEpisodes) {
-  const countElements = document.getElementById("count-area");
-  if (countElements) {
-    countElements.textContent = `Displaying  ${countFilteredEpisodes} / ${countAllEpisodes} episodes`;
+const defaultOption = document.createElement("option");
+defaultOption.value = "all";
+defaultOption.textContent = "All";
+episodeSelector.appendChild(defaultOption);
+
+allEpisodes.forEach((episode) => {
+  const episodeCode =
+    "S" +
+    String(episode.season) +
+    "E" +
+    String(episode.number).padStart(2, "0");
+
+  optionText = episode.name + " - " + episodeCode;
+  const option = document.createElement("option");
+  option.value = optionText;
+  option.textContent = optionText;
+  episodeSelector.appendChild(option);
+});
+
+navBar.appendChild(episodeSelector);
+console.log(episodeSelector);
+
+episodeSelector.addEventListener("change", () => {
+  const selectedEpisode = episodeSelector.value;
+  const rootElem = document.getElementById("root");
+  if (selectedEpisode === "all") {
+    makePageForEpisodes();
+  } else {
+    const filteredEpisodes = state.allEpisodes.filter((episode) => {
+      const episodeCode =
+        "S" +
+        String(episode.season) +
+        "E" +
+        String(episode.number).padStart(2, "0");
+      const optionText = episode.name + " - " + episodeCode;
+      return optionText === selectedEpisode;
+    });
+    countEpisodes(allEpisodes.length, filteredEpisodes.length);
+    document.getElementById("root").innerHTML = "";
+    for (const episode of filteredEpisodes) {
+      makeEpisodeCard(episode, rootElem);
+    }
   }
-}
+});
 
 const input = document.createElement("input");
 input.setAttribute("id", "input");
 input.setAttribute("placeholder", "Please insert your text");
 input.setAttribute("type", "search");
 navBar.appendChild(input);
-
-const allEpisodes = getAllEpisodes();
 
 // Created one place to hold data
 const state = {
@@ -78,5 +117,16 @@ input.addEventListener("input", () => {
   document.getElementById("root").innerHTML = "";
   makePageForEpisodes();
 });
+
+const countArea = document.createElement("p");
+countArea.id = "count-area";
+navBar.appendChild(countArea);
+
+function countEpisodes(countAllEpisodes, countFilteredEpisodes) {
+  const countElements = document.getElementById("count-area");
+  if (countElements) {
+    countElements.textContent = `Displaying  ${countFilteredEpisodes} / ${countAllEpisodes} episodes`;
+  }
+}
 
 window.onload = setup;
