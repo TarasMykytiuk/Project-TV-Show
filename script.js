@@ -56,7 +56,7 @@ episodeSelector.setAttribute("placeholder", "Chose episode");
 
 const defaultOption = document.createElement("option");
 defaultOption.value = "all";
-defaultOption.textContent = "All";
+defaultOption.textContent = "All episodes";
 episodeSelector.appendChild(defaultOption);
 
 allEpisodes.forEach((episode) => {
@@ -66,7 +66,7 @@ allEpisodes.forEach((episode) => {
     "E" +
     String(episode.number).padStart(2, "0");
 
-  optionText = episode.name + " - " + episodeCode;
+  optionText = episodeCode + " - " + episode.name;
   const option = document.createElement("option");
   option.value = optionText;
   option.textContent = optionText;
@@ -88,7 +88,7 @@ episodeSelector.addEventListener("change", () => {
         String(episode.season) +
         "E" +
         String(episode.number).padStart(2, "0");
-      const optionText = episode.name + " - " + episodeCode;
+      const optionText = episodeCode + " - " + episode.name;
       return optionText === selectedEpisode;
     });
     countEpisodes(allEpisodes.length, filteredEpisodes.length);
