@@ -7,6 +7,7 @@ function setup() {
 function makePageForEpisodes() {
   const rootElem = document.getElementById("root");
   const filteredEpisodes = state.allEpisodes.filter((episode) => {
+    // filter episodes on input search box
     return (
       episode.summary.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
       episode.name.toLowerCase().includes(state.searchTerm.toLowerCase())
@@ -26,7 +27,10 @@ function makeEpisodeCard(episode, rootElem) {
   const medImageUrl = episode.image.medium;
   const summary = episode.summary;
   const episodeCode =
-    "S" + String(season) + "E" + String(number).padStart(2, "0");
+    "S" +
+    String(season).padStart(2, "0") +
+    "E" +
+    String(number).padStart(2, "0"); //suggestion: I added "padStar(2, "0") for season element of episodeCode.
 
   const cardDom = document.createElement("div");
   cardDom.classList.add("card");
@@ -62,7 +66,7 @@ episodeSelector.appendChild(defaultOption);
 allEpisodes.forEach((episode) => {
   const episodeCode =
     "S" +
-    String(episode.season) +
+    String(episode.season).padStart(2, "0") +
     "E" +
     String(episode.number).padStart(2, "0");
 
@@ -77,6 +81,7 @@ navBar.appendChild(episodeSelector);
 console.log(episodeSelector);
 
 episodeSelector.addEventListener("change", () => {
+  //selector with filtering
   const selectedEpisode = episodeSelector.value;
   const rootElem = document.getElementById("root");
   if (selectedEpisode === "all") {

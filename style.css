@@ -42,9 +42,9 @@ nav {
 
 #selector,
 #input {
-  appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+  appearance: none;
   background: rgb(225, 224, 224);
   height: 34px;
   padding: 8px 12px;
