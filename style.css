@@ -33,3 +33,27 @@
   text-align: justify;
   margin: 10px auto;
 }
+
+nav {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+#selector,
+#input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: rgb(225, 224, 224);
+  height: 34px;
+  padding: 8px 12px;
+  font-size: 12px;
+  border: 2px solid rgb(31, 30, 30);
+  border-radius: 5px;
+}
+
+#count-area {
+  color: rgb(83, 82, 82);
+  margin-bottom: 20px;
+}
