@@ -1,26 +1,31 @@
 //You can edit ALL of the code here
-function setup() {
-  //const allEpisodes = getAllEpisodes();
-  makePageForEpisodes(state.allEpisodes);
+let allEpisodes = [];
+const rootElem = document.getElementById("root");
+async function setup() {
+  allEpisodes = await getAllEpisodes("https://api.tvmaze.com/shows/82/episodes");
+  makePageForEpisodes(allEpisodes);
 }
 
-function makePageForEpisodes() {
-  const rootElem = document.getElementById("root");
-  const filteredEpisodes = state.allEpisodes.filter((episode) => {
-    // filter episodes on input search box
-    return (
-      episode.summary.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
-      episode.name.toLowerCase().includes(state.searchTerm.toLowerCase())
-    );
-  });
-  countEpisodes(allEpisodes.length, filteredEpisodes.length);
-  //rootElem.textContent = `Got ${episodeList.length} episode(s)`;
-  for (const episode of filteredEpisodes) {
-    makeEpisodeCard(episode, rootElem);
+async function getAllEpisodes(url) {
+  let episodes = [];
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    episodes = Array.from(data);
+    return episodes;
+  } catch (error) {
+    console.log(error);
   }
 }
 
-function makeEpisodeCard(episode, rootElem) {
+function makePageForEpisodes(episodes) {
+  for (const episode of episodes) {
+    makeEpisodeCard(episode, rootElem);
+  }
+  createEpisodeOptions(episodes);
+}
+
+function makeEpisodeCard(episode) {
   const name = episode.name;
   const season = episode.season;
   const number = episode.number;
@@ -48,8 +53,6 @@ function makeEpisodeCard(episode, rootElem) {
 }
 
 // Created a place for the search bar
-const allEpisodes = getAllEpisodes();
-
 const navBar = document.createElement("nav");
 document.body.insertBefore(navBar, document.body.firstChild);
 
@@ -61,46 +64,44 @@ episodeSelector.setAttribute("placeholder", "Chose episode");
 const defaultOption = document.createElement("option");
 defaultOption.value = "all";
 defaultOption.textContent = "All episodes";
+defaultOption.value = "All episodes";
 episodeSelector.appendChild(defaultOption);
-
-allEpisodes.forEach((episode) => {
-  const episodeCode =
-    "S" +
-    String(episode.season).padStart(2, "0") +
-    "E" +
-    String(episode.number).padStart(2, "0");
-
-  optionText = episodeCode + " - " + episode.name;
-  const option = document.createElement("option");
-  option.value = optionText;
-  option.textContent = optionText;
-  episodeSelector.appendChild(option);
-});
-
 navBar.appendChild(episodeSelector);
-console.log(episodeSelector);
+
+function createEpisodeOptions(episodes) {
+  episodes.forEach((episode) => {
+    const episodeCode =
+      "S" +
+      String(episode.season).padStart(2, "0") +
+      "E" +
+      String(episode.number).padStart(2, "0");
+
+    const optionText = episodeCode + " - " + episode.name;
+    const option = document.createElement("option");
+    option.value = optionText;
+    option.textContent = optionText;
+    episodeSelector.appendChild(option);
+  });
+
+}
 
 episodeSelector.addEventListener("change", () => {
-  //selector with filtering
-  const selectedEpisode = episodeSelector.value;
-  const rootElem = document.getElementById("root");
-  if (selectedEpisode === "all") {
-    makePageForEpisodes();
+  let selectEpisodeName = episodeSelector.value.substring(
+    episodeSelector.value.indexOf("- ") + 2
+  );
+  let selectedEpisodes = [];
+
+  if (episodeSelector.value === "All episodes") {
+    makePageForEpisodes(allEpisodes);
   } else {
-    const filteredEpisodes = state.allEpisodes.filter((episode) => {
-      const episodeCode =
-        "S" +
-        String(episode.season) +
-        "E" +
-        String(episode.number).padStart(2, "0");
-      const optionText = episodeCode + " - " + episode.name;
-      return optionText === selectedEpisode;
-    });
-    countEpisodes(allEpisodes.length, filteredEpisodes.length);
-    document.getElementById("root").innerHTML = "";
-    for (const episode of filteredEpisodes) {
-      makeEpisodeCard(episode, rootElem);
+    for (episode of allEpisodes) {
+      if (episode.name == selectEpisodeName) {
+        selectedEpisodes.push(episode);
+      }
     }
+    countEpisodes(allEpisodes.length, selectedEpisodes.length);
+    rootElem.innerHTML = "";
+    makeEpisodeCard(selectedEpisodes[0]);
   }
 });
 
@@ -117,10 +118,17 @@ const state = {
 };
 
 input.addEventListener("input", () => {
-  state.searchTerm = input.value;
+  let searchTerm = input.value;
   // Update the page to be empty before filteredEpisodes append
-  document.getElementById("root").innerHTML = "";
-  makePageForEpisodes();
+  rootElem.innerHTML = "";
+  let searchMatch = [];
+  for (const episode of allEpisodes) {
+    if (episode.name.includes(searchTerm) || episode.summary.includes(searchTerm)) {
+      searchMatch.push(episode);
+    }
+  }
+  makePageForEpisodes(searchMatch);
+  countEpisodes(allEpisodes.length, searchMatch.length);
 });
 
 const countArea = document.createElement("p");
