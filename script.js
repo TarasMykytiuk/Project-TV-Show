@@ -83,11 +83,9 @@ async function getEpisodesByShowId(showId) {
 
 function makePageForEpisodes(episodes) {
   rootElem.innerHTML = "";
-  //episodeSelector.innerHTML = "";
   for (const episode of episodes) {
     makeEpisodeCard(episode, rootElem);
   }
-  //createEpisodeOptions(episodes);
 }
 
 function makeEpisodeCard(episode) {
@@ -138,8 +136,16 @@ episodeSelector.setAttribute("placeholder", "Chose episode");
 selectorBlock.appendChild(episodeSelector);
 
 function createShowOptions(shows) {
+  const sortedShows = shows.slice();
+  sortedShows.sort((a, b) => {
+    const A = a.name.toLowerCase();
+    const B = b.name.toLowerCase();
+    if (A < B) return -1;
+    if (A > B) return 1;
+    return 0;
+  });
   showSelector.innerHTML = "";
-  shows.forEach((show) => {
+  sortedShows.forEach((show) => {
     const option = document.createElement("option");
     option.value = show.id;
     option.textContent = show.name;
@@ -227,15 +233,11 @@ input.addEventListener("input", () => {
   let searchTerm = input.value.toLowerCase();
   // Update the page to be empty before filteredEpisodes append
   rootElem.innerHTML = "";
-  let searchMatch = [];
-  for (const episode of state.allEpisodes) {
-    if (
+  const searchMatch = state.allEpisodes.filter(
+    (episode) =>
       episode.name.toLowerCase().includes(searchTerm) ||
       episode.summary.toLowerCase().includes(searchTerm)
-    ) {
-      searchMatch.push(episode);
-    }
-  }
+  );
   makePageForEpisodes(searchMatch);
   countEpisodes(state.allEpisodes.length, searchMatch.length);
 });
