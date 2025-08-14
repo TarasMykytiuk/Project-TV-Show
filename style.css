@@ -29,18 +29,19 @@
 }
 
 .card p {
-  max-width: 60%;
+  max-width: 80%;
   text-align: justify;
   margin: 10px auto;
 }
 
-nav {
+.select {
   display: flex;
   align-items: baseline;
   gap: 10px;
 }
 
-#selector,
+#select_show,
+#select_episode,
 #input {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -55,5 +56,6 @@ nav {
 
 #count-area {
   color: rgb(83, 82, 82);
+  font-size: 13px;
   margin-bottom: 20px;
 }
