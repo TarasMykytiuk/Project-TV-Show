@@ -59,3 +59,20 @@
   font-size: 13px;
   margin-bottom: 20px;
 }
+
+footer {
+  height: 34px;
+}
+
+footer a {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: black;
+}
+
+footer a:hover {
+  color: blue;
+}
