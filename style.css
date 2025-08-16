@@ -1,11 +1,63 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
 #root {
   color: red;
   background-color: lightgray;
+}
+
+.episode-cards-container {
   display: grid;
   grid-template-columns: 33% 33% 33%;
 }
 
-.card {
+
+.show-cards-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.show-card{
+  color: black;
+  background-color: white;
+  text-align: center;
+  margin: 25px;
+}
+
+.show-content {
+  display: flex;
+  padding: 5px;
+}
+
+.show-content img {
+  width: 20%;
+  padding: 15px;
+}
+
+.show-content p {
+  width: 50%;
+  padding: 15px;
+}
+
+.show-content .show-info {
+  width: 30%;
+  padding: 15px;
+  border: 1px solid black;
+}
+
+.show-info-item {
+  display: flex;
+}
+
+.show-info-item .info-item-name {
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.episode-card {
   color: black;
   width: 80%;
   background-color: white;
@@ -15,7 +67,7 @@
   justify-self: center;
 }
 
-.card h2 {
+.episode-card h2 {
   width: calc(100% - 4px);
   border: 2px solid gray;
   border-radius: 5px;
@@ -24,14 +76,18 @@
   margin: 0;
 }
 
-.card img {
+.episode-card img {
   margin: 10px auto;
 }
 
-.card p {
+.episode-card p {
   max-width: 80%;
   text-align: justify;
   margin: 10px auto;
+}
+
+nav {
+  padding: 15px;
 }
 
 .select {
@@ -40,9 +96,25 @@
   gap: 10px;
 }
 
+#show-input-container, #show-selector-container {
+  display: flex;
+  align-items: center;
+}
+
+#backToShowListingButton {
+  background: rgb(225, 224, 224);
+  height: 34px;
+  padding: 8px 12px;
+  font-size: 12px;
+  border: 2px solid rgb(31, 30, 30);
+  border-radius: 5px;
+}
+
 #select_show,
 #select_episode,
-#input {
+#episode-input,
+#show-input,
+#show-select {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
@@ -52,6 +124,7 @@
   font-size: 12px;
   border: 2px solid rgb(31, 30, 30);
   border-radius: 5px;
+  margin-left: 15px;
 }
 
 #count-area {
