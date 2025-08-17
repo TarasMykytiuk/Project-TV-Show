@@ -1,34 +1,38 @@
 //You can edit ALL of the code here
+
 // Created one place to hold data
-
 let allShows = [];
-let allEpisodes = [];
-
 const state = {
   allShows,
-  allEpisodes,
   searchTerm: "",
 };
-
+// main dom elements of the page
 const rootElem = document.getElementById("root");
-async function setup() {
-  state.allShows = await getAllShows();
+const navBar = document.createElement("nav");
+const selectorBlock = document.createElement("div");
+// search elements
+const showSelector = document.createElement("select");
+const showInputContainer = document.createElement("div");
+showInputContainer.setAttribute("id", "show-input-container");
 
-  createShowOptions(state.allShows);
+//show selector used with show listing view
+const showListingSelectorContainer = document.createElement("div");
+showListingSelectorContainer.setAttribute("id", "show-selector-container");
+const showListingSelect = document.createElement("select");
+showListingSelect.setAttribute("id", "show-select");
 
-  const firstShowId = state.allShows[0].id;
-  showSelector.value = firstShowId;
+const showsQuantityDomDom = document.createElement("p");
+showsQuantityDomDom.setAttribute("id", "displayed-shows-squantity")
 
-  const episodes = await getEpisodesByShowId(firstShowId);
-  state.allEpisodes = episodes;
+const episodeSelector = document.createElement("select");
+const episodeInput = document.createElement("input");
+const countArea = document.createElement("p");
 
-  episodeSelector.innerHTML = "";
-  createEpisodeOptions(state.allEpisodes);
+const backToShowListingButton = document.createElement("button");
+backToShowListingButton.setAttribute("id", "backToShowListingButton");
+backToShowListingButton.textContent = "Shows listing";
 
-  rootElem.innerHTML = "";
-  makePageForEpisodes(state.allEpisodes);
-  countEpisodes(state.allEpisodes.length, state.allEpisodes.length);
-}
+// functions to get data from api
 
 async function getAllShows() {
   let allShows;
@@ -81,61 +85,160 @@ async function getEpisodesByShowId(showId) {
   return allEpisodes;
 }
 
-function makePageForEpisodes(episodes) {
-  rootElem.innerHTML = "";
-  for (const episode of episodes) {
-    makeEpisodeCard(episode, rootElem);
-  }
+// Created functions for the search bar creation
+// And all events for its Dom elements
+
+function createSearchBar(){
+  document.body.insertBefore(navBar, document.body.firstChild);
+  navBar.appendChild(selectorBlock);
+  selectorBlock.classList.add("select");
 }
 
-function makeEpisodeCard(episode) {
-  const name = episode.name;
-  const season = episode.season;
-  const number = episode.number;
-  const medImageUrl = episode.image.medium;
-  const summary = episode.summary;
-  const episodeCode =
-    "S" +
-    String(season).padStart(2, "0") +
-    "E" +
-    String(number).padStart(2, "0"); //suggestion: I added "padStar(2, "0") for season element of episodeCode.
-
-  const cardDom = document.createElement("div");
-  cardDom.classList.add("card");
-  const nameDom = document.createElement("h2");
-  nameDom.textContent = name + " - " + episodeCode;
-  const imageDom = document.createElement("img");
-  imageDom.src = medImageUrl;
-  const summaryDom = document.createElement("p");
-  // original summary contained "<p>" at start and "</p>" at the end
-  summaryDom.innerHTML = summary;
-  cardDom.appendChild(nameDom);
-  cardDom.appendChild(imageDom);
-  cardDom.appendChild(summaryDom);
-  rootElem.appendChild(cardDom);
+function clearNavBarDoms(){
+  navBar.innerHTML = "";
+  selectorBlock.innerHTML = "";
+  showSelector.innerHTML = "";
+  showInputContainer.innerHTML = "";
+  showListingSelectorContainer.innerHTML = "";
+  showListingSelect.innerHTML = "";
 }
 
-// Created a place for the search bar
-const navBar = document.createElement("nav");
-document.body.insertBefore(navBar, document.body.firstChild);
+function organiseShowInput(){
+  const beforeShowInputDom = document.createElement("p");
+  beforeShowInputDom.textContent = "Filtering for"
+  const showInputField = document.createElement("input");
+  showInputField.setAttribute("id", "show-input");
+  showInputField.setAttribute("placeholder", "Please insert your text");
+  showInputField.setAttribute("type", "search");
+  showInputContainer.appendChild(beforeShowInputDom);
+  showInputContainer.appendChild(showInputField);
+  selectorBlock.appendChild(showInputContainer);
 
-const selectorBlock = document.createElement("div");
-selectorBlock.classList.add("select");
-navBar.appendChild(selectorBlock);
+  showInputField.addEventListener("input", () => {
+    let searchTerm = showInputField.value.toLowerCase();
+    // Update the page to be empty before filteredShows append
+    rootElem.innerHTML = "";
+    const searchMatch = state.allShows.filter(
+      (show) =>
+        show.name.toLowerCase().includes(searchTerm) ||
+        show.summary.toLowerCase().includes(searchTerm)
+    );
+    showsQuantityDomDom.textContent = `Found ${searchMatch.length} shows`;
+    makePageForShows(searchMatch);
+  });
+}
 
-const showSelector = document.createElement("select");
-showSelector.setAttribute("id", "select_show");
-showSelector.setAttribute("name", "select_show");
-showSelector.setAttribute("placeholder", "Chose show");
-selectorBlock.appendChild(showSelector);
+function oganiseShowListingSelect(shows){
+  showsQuantityDomDom.textContent = `Found ${shows.length} shows`;
+  showListingSelectorContainer.appendChild(showsQuantityDomDom);
+  showListingSelectorContainer.appendChild(showListingSelect);
+  selectorBlock.appendChild(showListingSelectorContainer);
+  createShowOptions(shows, showListingSelect);
 
-const episodeSelector = document.createElement("select");
-episodeSelector.setAttribute("id", "select_episode");
-episodeSelector.setAttribute("name", "select_episode");
-episodeSelector.setAttribute("placeholder", "Chose episode");
-selectorBlock.appendChild(episodeSelector);
+  showListingSelect.addEventListener("change", async () => {
+    let selectedShowId = Number(showListingSelect.value);
+    if (isNaN(selectedShowId)) {
+      rootElem.innerHTML = "";
+      clearNavBarDoms();
+      createSearchBar();
+      countEpisodes(0, 0);
+      return;
+    }
+    episodesListingForShow(selectedShowId);
+  });
 
-function createShowOptions(shows) {
+}
+
+function organiseShowSelect(shows){
+  showSelector.setAttribute("id", "select_show");
+  showSelector.setAttribute("name", "select_show");
+  showSelector.setAttribute("placeholder", "Chose show");
+  selectorBlock.appendChild(showSelector);
+  createShowOptions(shows, showSelector);
+
+  showSelector.addEventListener("change", async () => {
+    let selectedShowId = Number(showSelector.value);
+    if (isNaN(selectedShowId)) {
+      rootElem.innerHTML = "";
+      clearNavBarDoms();
+      createSearchBar();
+      countEpisodes(0, 0);
+      return;
+    }
+    episodesListingForShow(selectedShowId);
+  });
+}
+
+function organiseEpisodeSelect(episodes){
+  episodeSelector.setAttribute("id", "select_episode");
+  episodeSelector.setAttribute("name", "select_episode");
+  episodeSelector.setAttribute("placeholder", "Chose episode");
+  selectorBlock.appendChild(episodeSelector);
+  
+  episodeSelector.addEventListener("change", async () => {
+    const selectedEpisode = episodeSelector.value;
+    //const rootElem = document.getElementById("root");
+    if (selectedEpisode === "all") {
+      makePageForEpisodes(episodes);
+      countEpisodes(episodes.length, episodes.length);
+      return;
+    } else {
+      const filteredEpisodes = episodes.filter((episode) => {
+        const episodeCode =
+          "S" +
+          String(episode.season).padStart(2, "0") +
+          "E" +
+          String(episode.number).padStart(2, "0");
+        return `${episodeCode} - ${episode.name}` === selectedEpisode;
+      });
+      makePageForEpisodes(filteredEpisodes);
+      countEpisodes(episodes.length, filteredEpisodes.length);
+    }
+  });
+}
+
+function organiseEpisodeInput(episodes){
+  episodeInput.setAttribute("id", "episode-input");
+  episodeInput.setAttribute("placeholder", "Please insert your text");
+  episodeInput.setAttribute("type", "search");
+  selectorBlock.appendChild(episodeInput);
+
+  episodeInput.addEventListener("input", () => {
+    let searchTerm = episodeInput.value.toLowerCase();
+    // Update the page to be empty before filteredEpisodes append
+    rootElem.innerHTML = "";
+    const searchMatch = episodes.filter(
+      (episode) =>
+        episode.name.toLowerCase().includes(searchTerm) ||
+        episode.summary.toLowerCase().includes(searchTerm)
+    );
+    makePageForEpisodes(searchMatch);
+    countEpisodes(episodes.length, searchMatch.length);
+  });
+}
+
+function organiseCountArea(){
+  countArea.id = "count-area";
+  selectorBlock.appendChild(countArea);
+}
+
+function attachBackToShowListingButton(){
+  selectorBlock.appendChild(backToShowListingButton);
+  backToShowListingButton.addEventListener("click", () => {
+    clearNavBarDoms();
+    createSearchBar();
+    organiseShowInput();
+    oganiseShowListingSelect(state.allShows);
+    rootElem.innerHTML = "";
+    makePageForShows(state.allShows);
+  });
+
+}
+
+// create search options for search bar
+// with data from api
+
+function createShowOptions(shows, selector) {
   const sortedShows = shows.slice();
   sortedShows.sort((a, b) => {
     const A = a.name.toLowerCase();
@@ -144,12 +247,12 @@ function createShowOptions(shows) {
     if (A > B) return 1;
     return 0;
   });
-  showSelector.innerHTML = "";
+  selector.innerHTML = "";
   sortedShows.forEach((show) => {
     const option = document.createElement("option");
     option.value = show.id;
     option.textContent = show.name;
-    showSelector.appendChild(option);
+    selector.appendChild(option);
   });
 }
 
@@ -182,75 +285,182 @@ function createEpisodeOptions(episodes) {
   });
 }
 
-showSelector.addEventListener("change", async () => {
-  let selectedShowId = Number(showSelector.value);
-  if (isNaN(selectedShowId)) {
-    rootElem.innerHTML = "";
-    episodeSelector.innerHTML = "";
-    countEpisodes(0, 0);
-    return;
-  }
+// generate page for all shows  or episodes entities
 
-  const episodes = await getEpisodesByShowId(selectedShowId);
-  state.allEpisodes = episodes;
-
-  episodeSelector.innerHTML = "";
-  createEpisodeOptions(state.allEpisodes);
-
+function makePageForShows(shows){
   rootElem.innerHTML = "";
-  makePageForEpisodes(state.allEpisodes);
-  countEpisodes(state.allEpisodes.length, state.allEpisodes.length);
-});
-
-episodeSelector.addEventListener("change", async () => {
-  const selectedEpisode = episodeSelector.value;
-  //const rootElem = document.getElementById("root");
-  if (selectedEpisode === "all") {
-    makePageForEpisodes(state.allEpisodes);
-    countEpisodes(state.allEpisodes.length, state.allEpisodes.length);
-    return;
-  } else {
-    const filteredEpisodes = state.allEpisodes.filter((episode) => {
-      const episodeCode =
-        "S" +
-        String(episode.season).padStart(2, "0") +
-        "E" +
-        String(episode.number).padStart(2, "0");
-      return `${episodeCode} - ${episode.name}` === selectedEpisode;
-    });
-    makePageForEpisodes(filteredEpisodes);
-    countEpisodes(state.allEpisodes.length, filteredEpisodes.length);
+  // to apply differen positioning of show or episodes cards
+  // new parent dom created
+  const showCardsDom = document.createElement("div");
+  showCardsDom.classList.add("show-cards-container");
+  rootElem.appendChild(showCardsDom);
+  for ( const show of shows){
+    makeShowCard(show, showCardsDom);
   }
-});
+}
 
-const input = document.createElement("input");
-input.setAttribute("id", "input");
-input.setAttribute("placeholder", "Please insert your text");
-input.setAttribute("type", "search");
-selectorBlock.appendChild(input);
-
-input.addEventListener("input", () => {
-  let searchTerm = input.value.toLowerCase();
-  // Update the page to be empty before filteredEpisodes append
+function makePageForEpisodes(episodes) {
   rootElem.innerHTML = "";
-  const searchMatch = state.allEpisodes.filter(
-    (episode) =>
-      episode.name.toLowerCase().includes(searchTerm) ||
-      episode.summary.toLowerCase().includes(searchTerm)
-  );
-  makePageForEpisodes(searchMatch);
-  countEpisodes(state.allEpisodes.length, searchMatch.length);
-});
+  // to apply differen positioning of show or episodes cards
+  // new parent dom created
+  const episodeCardsDom = document.createElement("div");
+  episodeCardsDom.classList.add("episode-cards-container");
+  rootElem.appendChild(episodeCardsDom);
+  for (const episode of episodes) {
+    makeEpisodeCard(episode, episodeCardsDom);
+  }
+}
 
-const countArea = document.createElement("p");
-countArea.id = "count-area";
-selectorBlock.appendChild(countArea);
+// create listing of episodes for one show
+async function episodesListingForShow(showId){
+  clearNavBarDoms();
+  createSearchBar();
+  organiseShowSelect(state.allShows, showSelector);
+  const episodes = await getEpisodesByShowId(showId);
+  organiseEpisodeSelect(episodes);
+  organiseEpisodeInput(episodes);
+  organiseCountArea();
+  attachBackToShowListingButton();
+  showSelector.value = showId;
+  createEpisodeOptions(episodes);
+  rootElem.innerHTML = "";
+  makePageForEpisodes(episodes);
+  countEpisodes(episodes.length, episodes.length);
+}
 
+// generate single cards for shows or episodes
+
+function makeShowCard(show, parentDom){
+  const name = show.name;
+  const medImageUrl = show.image.medium;
+  const summary = show.summary;
+  const rating = show.rating.average;
+  const genres = show.genres;
+  const status = show.status;
+  const runtime = show.runtime;
+
+  const cardDom = document.createElement("div");
+  cardDom.classList.add("show-card");
+  const nameDom = document.createElement("h2");
+  nameDom.textContent = name;
+  // if show name clicked, episodes listing displayed
+  nameDom.addEventListener("click", () => {
+    episodesListingForShow(show.id);
+  });
+
+  const contentDom = document.createElement("div");
+  contentDom.classList.add("show-content");
+  const imageDom = document.createElement("img");
+  imageDom.src = medImageUrl;
+  const summaryDom = document.createElement("p");
+  // original summary contained "<p>" at start and "</p>" at the end
+  summaryDom.innerHTML = summary.substring(3, summary.length - 4);
+
+  const infoDom = document.createElement("div");
+  infoDom.classList.add("show-info");
+
+  const ratingDom = document.createElement("div");
+  ratingDom.classList.add("show-info-item");
+  const ratingNameDom = document.createElement("p");
+  ratingNameDom.classList.add("info-item-name");
+  ratingNameDom.textContent = "Rated:"
+  const ratingValueDom = document.createElement("p");
+  ratingValueDom.textContent = rating;
+  ratingDom.appendChild(ratingNameDom);
+  ratingDom.appendChild(ratingValueDom);
+
+  const genresDom = document.createElement("div");
+  genresDom.classList.add("show-info-item");
+  const genresNameDom = document.createElement("p");
+  genresNameDom.classList.add("info-item-name");
+  genresNameDom.textContent = "Genres:"
+  const genresValueDom = document.createElement("p");
+  // add all genres to one string
+  let genresStr = "";
+  for ( let i = 0; i < genres.length; i++){
+    i != genres.length - 1 ? genresStr += genres[i] + " | " : genresStr += genres[i];
+  }
+  genresValueDom.textContent = genresStr;
+  genresDom.appendChild(genresNameDom);
+  genresDom.appendChild(genresValueDom);
+
+  const statusDom = document.createElement("div");
+  statusDom.classList.add("show-info-item");
+  const statusNameDom = document.createElement("p");
+  statusNameDom.classList.add("info-item-name");
+  statusNameDom.textContent = "Status:"
+  const statusValueDom = document.createElement("p");
+  statusValueDom.textContent = status;
+  statusDom.appendChild(statusNameDom);
+  statusDom.appendChild(statusValueDom);
+
+  const runtimeDom = document.createElement("div");
+  runtimeDom.classList.add("show-info-item");
+  const runtimeNameDom = document.createElement("p");
+  runtimeNameDom.classList.add("info-item-name");
+  runtimeNameDom.textContent = "Runtime:"
+  const runtimeValueDom = document.createElement("p");
+  runtimeValueDom.textContent = runtime;
+  runtimeDom.appendChild(runtimeNameDom);
+  runtimeDom.appendChild(runtimeValueDom);
+
+  infoDom.appendChild(ratingDom);
+  infoDom.appendChild(genresDom);
+  infoDom.appendChild(statusDom);
+  infoDom.appendChild(runtimeDom);
+
+  cardDom.appendChild(nameDom);
+  contentDom.appendChild(imageDom);
+  contentDom.appendChild(summaryDom);
+  contentDom.appendChild(infoDom);
+
+  cardDom.appendChild(contentDom);
+  parentDom.appendChild(cardDom);
+}
+
+function makeEpisodeCard(episode, parentDom) {
+  const name = episode.name;
+  const season = episode.season;
+  const number = episode.number;
+  const medImageUrl = episode.image.medium;
+  const summary = episode.summary;
+  const episodeCode =
+    "S" +
+    String(season).padStart(2, "0") +
+    "E" +
+    String(number).padStart(2, "0"); //suggestion: I added "padStar(2, "0") for season element of episodeCode.
+
+  const cardDom = document.createElement("div");
+  cardDom.classList.add("episode-card");
+  const nameDom = document.createElement("h2");
+  nameDom.textContent = name + " - " + episodeCode;
+  const imageDom = document.createElement("img");
+  imageDom.src = medImageUrl;
+  const summaryDom = document.createElement("p");
+  // original summary contained "<p>" at start and "</p>" at the end
+  summaryDom.innerHTML = summary;
+  cardDom.appendChild(nameDom);
+  cardDom.appendChild(imageDom);
+  cardDom.appendChild(summaryDom);
+  parentDom.appendChild(cardDom);
+}
+
+// change dom for number of selected episodes
 function countEpisodes(countAllEpisodes, countFilteredEpisodes) {
   const countElements = document.getElementById("count-area");
   if (countElements) {
     countElements.textContent = `Displaying  ${countFilteredEpisodes} / ${countAllEpisodes} episodes`;
   }
+}
+
+// start of page rendering
+async function setup() {
+  state.allShows = await getAllShows();
+  createSearchBar();
+  organiseShowInput();
+  oganiseShowListingSelect(state.allShows);
+  rootElem.innerHTML = "";
+  makePageForShows(state.allShows);
 }
 
 window.onload = setup;
